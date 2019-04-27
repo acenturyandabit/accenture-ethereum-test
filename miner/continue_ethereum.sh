@@ -1,1 +1,1 @@
-geth console --datadir=../../geth_directory --rpc --rpcapi db,eth,net,web3,personal --rpcport 8545 --rpcaddr localhost --rpccorsdomain "*" --ws --wsorigins="*" --mine --minerthreads=1
+geth console --networkid 452 --datadir=../../geth_directory  --rpc --rpcapi db,eth,net,web3,personal --rpcport 8545 --rpcaddr localhost --rpccorsdomain "http://localhost:1234" --ws --wsorigins="*" --mine --minerthreads=1
