@@ -1,1 +1,0 @@
-geth init ticketchan.genesis.json geth --datadir=../go_ethereum_data --bootnodes=a5b650999f2899d4482a5e30e3daf150935e23d9e1a33a8caa47d9e3b30e5ecf1d45af7fc14668a4a8f690a85d0f1e7e2ad9c83b7a00967c6d4249e3ce4acf4a --ws

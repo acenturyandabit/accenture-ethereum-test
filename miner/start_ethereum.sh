@@ -1,0 +1,2 @@
+geth init ../depends/ticketchan.genesis.json --datadir=../../geth_directory
+geth console --datadir=../../geth_directory --ws --wsorigins "http://localhost:1234" --mine --minerthreads=1 --etherbase=0x0000000000000000000000000000000000001234

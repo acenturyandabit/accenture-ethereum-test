@@ -1,0 +1,13 @@
+- install node js
+- npm install http-server -g
+- http-server ./respective_directory
+- in browser, open localhost:1234/home.html
+
+- install go ethereum (for windows, binary is included)
+- run start_ethereum in respective folder
+- connect nodes (manually)
+-- admin.nodeInfo to get address
+-- share address to google doc
+-- pull address and connect peer on other computers
+
+
