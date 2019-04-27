@@ -12,6 +12,13 @@
       var ws;
       var socketurl;
       var ethAddr;
+      function guid(count = 6) {
+        let pool = "1234567890qwertyuiopasdfghjklzxcvbnm";
+        tguid = "";
+        for (i = 0; i < count; i++)
+          tguid += pool[Math.floor(Math.random() * pool.length)];
+        return tguid;
+      }
 
       // this is important as borwser will reject ws call if it is a https page
       if (location.protocol === "https:") {
@@ -40,25 +47,11 @@
         }
 
         // get the Etherum address from URL
-        var qPara = window.location.search.substr(1).split("="); // url query parameter
-        if (qPara[0] == "addr") {
-          ethAddr = qPara[1];
+        var qPara = new URLSearchParams(window.location.search);
+        if (qPara.has("addr")) {
+          ethAddr = qPara.get("addr");
           $("#addr").text(ethAddr);
         }
-
-        // show QR code
-        $("#qrcodeImg").attr(
-          "src",
-          "https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=" +
-            window.location +
-            "&choe=ISO-8859-1"
-        );
-
-        // bookmark section
-        var tmpList = "";
-        var tmpListarr = [];
-        var seperator = " ";
-
         if (typeof ethAddr !== "undefined") {
           $("#spanStatus").text("connecting");
           ws = new WebSocket(socketurl);
@@ -70,12 +63,8 @@
             ws.send(
               '{"id": 1, "method": "eth_subscribe", "params": ["newHeads", {}]}'
             );
+            web3.eth.getBalance(ethAddr);
             // latest balance
-            setInterval(() => {
-              $("#balance").text(
-                web3.fromWei(web3.eth.getBalance(ethAddr), "ether").toString()
-              );
-            }, 1000);
 
             // literally get all blocks
             let lastTimeStamp;
@@ -83,12 +72,62 @@
               let obj = web3.eth.getBlock("latest");
               if (obj.timestamp != lastTimeStamp) {
                 $("#chain").append(`<li>` + obj.timestamp + `</li>`);
+                if (obj.transactions.length > 0) {
+                  for (let i = 0; i < obj.transactions.length; i++) {
+                    let mo = web3.eth.getTransaction(obj.transactions[i]);
+                    let text=web3.toAscii(mo.input).split(" ");
+                    let ele;
+                    if ($("#"+text[1]).length){
+                      ele=$("#"+text[1])[0];
+                    }else{
+                      $("#chain").append(`<p id="`+text[i]+`">`+text[1]+`<p>`);
+                      ele=$("#"+text[1])[0];
+                    }
+                    switch(text[0]){
+                      case 'avail':
+                      ele.style.background='green';
+                      break;
+                      case 'sold':
+                      ele.style.background='grey';
+                      break;
+                    }
+                  }
+                  ule += `</ul>`;
+                  $("#chain").append(ule);
+                }
                 lastTimeStamp = obj.timestamp;
               }
             }, 1000);
 
             //get my own ID
-            let myID = web3.eth.accounts()[0];
+            let myID = web3.eth.coinbase;
+            function sendTo(id) {
+              web3.eth.defaultAccount = web3.personal.listAccounts[0];
+              let tact = {
+                from: web3.personal.listAccounts[0],
+                to: id,
+                value: web3.toHex(web3.toWei("0.00001", "ether")),
+                data: web3.toHex("avail " + guid(11)),
+                gas: "210000",
+                gasPrice: 1,
+                nonce: web3.eth.getTransactionCount(web3.eth.defaultAccount),
+                chain: 72
+              };
+              cntr++;
+              web3.personal.unlockAccount(
+                web3.personal.listAccounts[0],
+                "123456789",
+                15000
+              );
+              let tx2 = web3.eth.signTransaction(tact, myID);
+              web3.eth.sendTransaction(tx2.tx);
+            }
+
+            //send ether to people when payment is recorded
+            let sendees = [];
+            $("#addtick").on("click", e => {
+              sendTo(myID); //send money to myself
+            });
           };
 
           ws.onclose = function() {
@@ -107,18 +146,22 @@
   </head>
 
   <body>
-    <h1>DASHBOARD</h1>
+    <h1>Author Dashboard</h1>
     <div style="display:flex;flex-direction:row;">
       <div style="flex: 1 1 auto">
+        <h2>Status:<span id="spanStatus">Disconnected</span></h2>
+        <!--<h2>Mining reward/sec:<span>AMOUNT</span></h2>
         <h2>Account: <span id="addr"></span></h2>
-        <h2>Balance: <span id="balance">...</span></h2>
+        <h2>Balance: <span id="balance">...</span></h2>-->
       </div>
       <div style="flex: 1 1 auto">
         <h2>Tickets</h2>
-        <button>Release a ticket</button>
-        <h2>Ticket status</h2>
-        <p>Tickets issued: <span id="issued"></span></p>
-        <p>Tickets bought: <span id="bought"></span></p>
+        <button class="addtick">Add Ticket</button>
+        <h3>Active tickets</h3>
+        <div
+          style="display:flex;flex-direction:column; overflow-y:auto"
+          id="chain"
+        ></div>
       </div>
     </div>
   </body>

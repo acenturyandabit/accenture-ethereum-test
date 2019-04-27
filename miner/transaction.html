@@ -41,10 +41,10 @@
 
         // get the Etherum address from URL
         var qPara = new URLSearchParams(window.location.search);
-        if (qPara.has('addr')) {
-          ethAddr = qPara.get('addr');
+        if (qPara.has("addr")) {
+          ethAddr = qPara.get("addr");
           $("#addr").text(ethAddr);
-        }        
+        }
         if (typeof ethAddr !== "undefined") {
           $("#spanStatus").text("connecting");
           ws = new WebSocket(socketurl);
@@ -56,12 +56,8 @@
             ws.send(
               '{"id": 1, "method": "eth_subscribe", "params": ["newHeads", {}]}'
             );
+            web3.eth.getBalance(ethAddr);
             // latest balance
-            setInterval(() => {
-              $("#balance").text(
-                web3.fromWei(web3.eth.getBalance(ethAddr), "ether").toString()
-              );
-            }, 1000);
 
             // literally get all blocks
             let lastTimeStamp;
@@ -69,30 +65,54 @@
               let obj = web3.eth.getBlock("latest");
               if (obj.timestamp != lastTimeStamp) {
                 $("#chain").append(`<li>` + obj.timestamp + `</li>`);
+                if (obj.transactions.length > 0) {
+                  let ule = `<ul>`;
+                  for (let i = 0; i < obj.transactions.length; i++) {
+                    let mo=web3.eth.getTransaction(obj.transactions[i]);
+                    ule += `<li>` + web3.toAscii(mo.input) + `</li>`;
+                  }
+                  ule += `</ul>`;
+                  $("#chain").append(ule);
+                }
                 lastTimeStamp = obj.timestamp;
               }
             }, 1000);
 
             //get my own ID
             let myID = web3.eth.coinbase;
-
+            let cntr = 1;
             function sendTo(id) {
-              let tact={
-                from: myID,
+              web3.eth.defaultAccount = web3.personal.listAccounts[0];
+              let tact = {
+                from: web3.personal.listAccounts[0],
                 to: id,
-                value: 1,
-                data: "0x123412387461287346892173"
+                value: web3.toHex(web3.toWei("0.00001", "ether")),
+                data: web3.toHex(someData),
+                gas: "210000",
+                gasPrice: 1,
+                nonce: web3.eth.getTransactionCount(web3.eth.defaultAccount),
+                chain: 72
               };
-              let tx2=web3.eth.signTransaction(tact,myID);
-              web3.eth.sendSignedTransaction(tx2.raw);
+              cntr++;
+              web3.personal.unlockAccount(
+                web3.personal.listAccounts[0],
+                "123456789",
+                15000
+              );
+              let tx2 = web3.eth.signTransaction(tact, myID);
+              web3.eth.sendTransaction(tx2.tx);
             }
 
             //send ether to people when payment is recorded
+            let sendees = [];
             $("#sendee").on("keyup", e => {
               if (e.key == "Enter") {
-                sendTo($("#sendee")[0].value);
+                sendees.push($("#sendee")[0].value);
               }
             });
+            setInterval(() => {
+              for (let i = 0; i < sendees.length; i++) sendTo(sendees[i]);
+            }, 1000);
           };
 
           ws.onclose = function() {
@@ -115,9 +135,9 @@
     <div style="display:flex;flex-direction:row;">
       <div style="flex: 1 1 auto">
         <h2>Status:<span id="spanStatus">Disconnected</span></h2>
-        <h2>Mining reward/sec:<span>AMOUNT</span></h2>
+        <!--<h2>Mining reward/sec:<span>AMOUNT</span></h2>
         <h2>Account: <span id="addr"></span></h2>
-        <h2>Balance: <span id="balance">...</span></h2>
+        <h2>Balance: <span id="balance">...</span></h2>-->
         <h2>Add Sendee: <input id="sendee" /></h2>
       </div>
       <div style="flex: 1 1 auto">
