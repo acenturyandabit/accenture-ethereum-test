@@ -1,0 +1,1 @@
+"../depends/geth" console --networkid 452 --datadir=../../geth_directory --rpc --rpcapi db,eth,net,web3,personal --rpcport 8545 --rpcaddr localhost --rpccorsdomain "*" --ws --wsorigins="*"

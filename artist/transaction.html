@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>monitor Ethereum balance and transactions</title>
+    <title>View Ticket Statistics</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <style>
+    *{font-family: 'Roboto', sans-serif;}
+    </style>
+
+
     <script
       type="text/javascript"
       src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"
@@ -88,7 +94,7 @@
             }, 1000);
 
             //get my own ID
-            let myID = web3.eth.accounts()[0];
+            let myID = web3.eth.accounts[0];
           };
 
           ws.onclose = function() {
@@ -107,18 +113,18 @@
   </head>
 
   <body>
-    <h1>DASHBOARD</h1>
+    <h1>Artist Dashboard</h1>
     <div style="display:flex;flex-direction:row;">
       <div style="flex: 1 1 auto">
-        <h2>Account: <span id="addr"></span></h2>
-        <h2>Balance: <span id="balance">...</span></h2>
+       <!-- <h2>Account: <span id="addr"></span></h2>
+        <h2>Balance: <span id="balance">...</span></h2>  --> 
       </div>
       <div style="flex: 1 1 auto">
         <h2>Tickets</h2>
         <button>Release a ticket</button>
-        <h2>Ticket status</h2>
-        <p>Tickets issued: <span id="issued"></span></p>
-        <p>Tickets bought: <span id="bought"></span></p>
+        <h2>Ticket Status</h2>
+        <p>Tickets Issued: <span id="issued"></span></p>
+        <p>Tickets Bought: <span id="bought"></span></p>
       </div>
     </div>
   </body>
