@@ -1,0 +1,1 @@
+geth init ticketchan.genesis.json --ws
