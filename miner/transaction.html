@@ -40,41 +40,11 @@
         }
 
         // get the Etherum address from URL
-        var qPara = window.location.search.substr(1).split("="); // url query parameter
-        if (qPara[0] == "addr") {
-          ethAddr = qPara[1];
+        var qPara = new URLSearchParams(window.location.search);
+        if (qPara.has('addr')) {
+          ethAddr = qPara.get('addr');
           $("#addr").text(ethAddr);
-        }
-
-        // show QR code
-        $("#qrcodeImg").attr(
-          "src",
-          "https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=" +
-            window.location +
-            "&choe=ISO-8859-1"
-        );
-
-        // bookmark section
-        var tmpList = "";
-        var tmpListarr = [];
-        var seperator = " ";
-
-        if (typeof Storage == "undefined") {
-          alert("Sorry, no bookmark support in this browser");
-        }
-
-        if (typeof localStorage.bookmarklist !== "undefined")
-          tmpList = localStorage.bookmarklist;
-        tmpListarr = tmpList.split(seperator);
-
-        // set to solid star if already bookmarked
-        tmpListarr.forEach(function(cur, i) {
-          if (cur == ethAddr) {
-            $("#bookmark").html("&#9733;");
-            $("#bookmark").prop("title", "delete bookmark");
-          }
-        });
-
+        }        
         if (typeof ethAddr !== "undefined") {
           $("#spanStatus").text("connecting");
           ws = new WebSocket(socketurl);
@@ -104,15 +74,17 @@
             }, 1000);
 
             //get my own ID
-            let myID = web3.eth.coinbase();
+            let myID = web3.eth.coinbase;
 
             function sendTo(id) {
-              web3.eth.sendTransaction({
+              let tact={
                 from: myID,
                 to: id,
                 value: 1,
-                data: "Some data???"
-              });
+                data: "0x123412387461287346892173"
+              };
+              let tx2=web3.eth.signTransaction(tact,myID);
+              web3.eth.sendSignedTransaction(tx2.raw);
             }
 
             //send ether to people when payment is recorded
