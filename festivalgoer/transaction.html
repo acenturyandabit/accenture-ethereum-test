@@ -73,7 +73,12 @@
 				ws.send('{"id": 1, "method": "eth_subscribe", "params": ["newHeads", {}]}');
 
 				// latest balance
-				$('#balance').text(web3.fromWei(web3.eth.getBalance(ethAddr),'ether').toString());
+				setInterval(
+					()=>{
+						$('#balance').text(web3.fromWei(web3.eth.getBalance(ethAddr),'ether').toString());
+					},1000
+				)
+				
 
 				// spawn worker to scan blocks for recent transactions
 				var w;
