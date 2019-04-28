@@ -1,161 +1,158 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>monitor Ethereum balance and transactions</title>
-    <style>
-      *{font-family: 'Roboto', sans-serif;}
-  
-      </style>
-    <script
-      type="text/javascript"
-      src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"
-    ></script>
-    <script type="text/javascript" src="web3.min.js"></script>
 
-    <script type="text/javascript">
-      var ws;
-      var socketurl;
-      var ethAddr;
+<head>
+  <title>monitor Ethereum balance and transactions</title>
+  <style>
+    * {
+      font-family: 'Roboto', sans-serif;
+    }
+  </style>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+  <script type="text/javascript" src="web3.min.js"></script>
 
-      // this is important as borwser will reject ws call if it is a https page
-      if (location.protocol === "https:") {
-        socketurl = "wss://";
+  <script type="text/javascript">
+    var ws;
+    var socketurl;
+    var ethAddr;
+
+    // this is important as borwser will reject ws call if it is a https page
+    if (location.protocol === "https:") {
+      socketurl = "wss://";
+    } else {
+      socketurl = "ws://";
+    }
+
+    socketurl += "localhost:8546";
+
+    $().ready(function () {
+      if (typeof web3 !== "undefined") {
+        console.warn(
+          "Using web3 detected from external source like Metamask"
+        );
+        // Use Mi0xa86e0a5ab51612e245fa96461cfc7df3129595950xa86e0a5ab51612e245fa96461cfc7df312959595st/MetaMask's provider
+        window.web3 = new Web3(web3alert.currentProvider);
       } else {
-        socketurl = "ws://";
+        console.warn(
+          "No web3 detected. Falling back to http://localhost:8545"
+        );
+        // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
+        window.web3 = new Web3(
+          new Web3.providers.HttpProvider("http://localhost:8545")
+        );
       }
 
-      socketurl += "localhost:8546";
+      // get the Etherum address from URL
+      var qPara = new URLSearchParams(window.location.search);
+      if (qPara.has("addr")) {
+        ethAddr = qPara.get("addr");
+        $("#addr").text(ethAddr);
+      }
+      if (typeof ethAddr !== "undefined") {
+        $("#spanStatus").text("connecting");
+        ws = new WebSocket(socketurl);
 
-      $().ready(function() {
-        if (typeof web3 !== "undefined") {
-          console.warn(
-            "Using web3 detected from external source like Metamask"
+        ws.onopen = function () {
+          $("#spanStatus").text("Connected to geth at " + socketurl + "");
+
+          // subscribe through websocket
+          ws.send(
+            '{"id": 1, "method": "eth_subscribe", "params": ["newHeads", {}]}'
           );
-          // Use Mi0xa86e0a5ab51612e245fa96461cfc7df3129595950xa86e0a5ab51612e245fa96461cfc7df312959595st/MetaMask's provider
-          window.web3 = new Web3(web3alert.currentProvider);
-        } else {
-          console.warn(
-            "No web3 detected. Falling back to http://localhost:8545"
-          );
-          // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
-          window.web3 = new Web3(
-            new Web3.providers.HttpProvider("http://localhost:8545")
-          );
-        }
-
-        // get the Etherum address from URL
-        var qPara = new URLSearchParams(window.location.search);
-        if (qPara.has("addr")) {
-          ethAddr = qPara.get("addr");
-          $("#addr").text(ethAddr);
-        }
-        if (typeof ethAddr !== "undefined") {
-          $("#spanStatus").text("connecting");
-          ws = new WebSocket(socketurl);
-
-          ws.onopen = function() {
-            $("#spanStatus").text("Connected to geth at " + socketurl + "");
-
-            // subscribe through websocket
-            ws.send(
-              '{"id": 1, "method": "eth_subscribe", "params": ["newHeads", {}]}'
-            );
-            
 
 
-            
 
-            // literally get all blocks
-            let lastTimeStamp;
-            setInterval(() => {
-              //getting new blocks
-              let obj = web3.eth.getBlock("latest",true);
-              //dont duplicate block handling
-              if (obj.timestamp != lastTimeStamp) {
-                $("#chain").append(`<li>` + obj.timestamp + `</li>`);
-                if (obj.transactions.length > 0) {
-                  let ule = `<ul>`;
-                  for (let i = 0; i < obj.transactions.length; i++) {
-                    let mo = web3.eth.getTransaction(obj.transactions[i]);
-                    ule += `<li>` + web3.toAscii(mo.input) + `</li>`;
-                  }
-                  ule += `</ul>`;
-                  $("#chain").append(ule);
+
+
+          // literally get all blocks
+          let lastTimeStamp;
+          setInterval(() => {
+            //getting new blocks
+            let obj = web3.eth.getBlock("latest", true);
+            //dont duplicate block handling
+            if (obj.timestamp != lastTimeStamp) {
+              $("#chain").append(`<li>` + obj.timestamp + `</li>`);
+              if (obj.transactions.length > 0) {
+                let ule = `<ul>`;
+                for (let i = 0; i < obj.transactions.length; i++) {
+                  ule += `<li>` + web3.toAscii(obj.transactions[i].input) + `</li>`;
                 }
-                lastTimeStamp = obj.timestamp;
+                ule += `</ul>`;
+                $("#chain").append(ule);
               }
-            }, 1000);
-            //also getting old blocks, at start.
-
-            //get my own ID
-            let myID = web3.eth.coinbase;
-            let cntr = 1;
-            function sendTo(id) {
-              web3.eth.defaultAccount = web3.personal.listAccounts[0];
-              let tact = {
-                from: web3.personal.listAccounts[0],
-                to: id,
-                value: web3.toHex(web3.toWei("0.0001", "ether")),
-                data: "0xf0",
-                gas: "210000",
-                gasPrice: 1,
-                nonce: web3.eth.getTransactionCount(web3.eth.defaultAccount),
-                chain: 72
-              };
-              cntr++;
-              web3.personal.unlockAccount(
-                web3.personal.listAccounts[0],
-                "123456789",
-                15000
-              );
-              let tx2 = web3.eth.signTransaction(tact, myID);
-              web3.eth.sendTransaction(tx2.tx);
+              lastTimeStamp = obj.timestamp;
             }
+          }, 1000);
+          //also getting old blocks, at start.
 
-            //send ether to people when payment is recorded
-            let sendees = [];
-            $("#sendee").on("keyup", e => {
-              if (e.key == "Enter") {
-                sendees.push($("#sendee")[0].value);
-              }
-            });
-            setInterval(() => {
-              for (let i = 0; i < sendees.length; i++) sendTo(sendees[i]);
-            }, 10000);
-          };
+          //get my own ID
+          let myID = web3.eth.coinbase;
+          let cntr = 1;
 
-          ws.onclose = function() {
-            var d = new Date();
-            $("#spanStatus").text("Unable to connect to geth");
-          };
-        }
+          function sendTo(id) {
+            web3.eth.defaultAccount = web3.personal.listAccounts[0];
+            let tact = {
+              from: web3.personal.listAccounts[0],
+              to: id,
+              value: web3.toHex(web3.toWei("0.0001", "ether")),
+              data: "0xf0",
+              gas: "210000",
+              gasPrice: 1,
+              nonce: web3.eth.getTransactionCount(web3.eth.defaultAccount),
+              chain: 72
+            };
+            cntr++;
+            web3.personal.unlockAccount(
+              web3.personal.listAccounts[0],
+              "123456789",
+              15000
+            );
+            let tx2 = web3.eth.signTransaction(tact, myID);
+            web3.eth.sendTransaction(tx2.tx);
+          }
 
-        $(window).bind("beforeunload", function() {
-          ws.close();
-        });
+          //send ether to people when payment is recorded
+          let sendees = [];
+          $("#sendee").on("keyup", e => {
+            if (e.key == "Enter") {
+              sendees.push($("#sendee")[0].value);
+            }
+          });
+          setInterval(() => {
+            for (let i = 0; i < sendees.length; i++) sendTo(sendees[i]);
+          }, 10000);
+        };
+
+        ws.onclose = function () {
+          var d = new Date();
+          $("#spanStatus").text("Unable to connect to geth");
+        };
+      }
+
+      $(window).bind("beforeunload", function () {
+        ws.close();
       });
-    </script>
+    });
+  </script>
 
-    <link rel="stylesheet" href="styles.css" />
-  </head>
+  <link rel="stylesheet" href="styles.css" />
+</head>
 
-  <body>
-    <h1>DASHBOARD</h1>
-    <div style="display:flex;flex-direction:row;">
-      <div style="flex: 1 1 auto">
-        <h2>Status:<span id="spanStatus">Disconnected</span></h2>
-        <!--<h2>Mining reward/sec:<span>AMOUNT</span></h2>
+<body>
+  <h1>DASHBOARD</h1>
+  <div style="display:flex;flex-direction:row;">
+    <div style="flex: 1 1 auto">
+      <h2>Status:<span id="spanStatus">Disconnected</span></h2>
+      <!--<h2>Mining reward/sec:<span>AMOUNT</span></h2>
         <h2>Account: <span id="addr"></span></h2>
         <h2>Balance: <span id="balance">...</span></h2>-->
-        <h2>Add Sendee: <input id="sendee" /></h2>
-      </div>
-      <div style="flex: 1 1 auto">
-        <h2>Block list...</h2>
-        <div
-          style="display:flex;flex-direction:column; overflow-y:auto"
-          id="chain"
-        ></div>
-      </div>
+      <h2>Add Sendee: <input id="sendee" /></h2>
     </div>
-  </body>
+    <div style="flex: 1 1 auto">
+      <h2>Block list...</h2>
+      <div style="display:flex;flex-direction:column; overflow-y:auto" id="chain"></div>
+    </div>
+  </div>
+</body>
+
 </html>
