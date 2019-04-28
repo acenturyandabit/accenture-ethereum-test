@@ -77,16 +77,16 @@
             setInterval(() => {
               let obj = web3.eth.getBlock("latest");
               if (obj.timestamp != lastTimeStamp) {
-                $("#chain").append(`<li>` + obj.timestamp + `</li>`);
                 if (obj.transactions.length > 0) {
                   for (let i = 0; i < obj.transactions.length; i++) {
                     let mo = web3.eth.getTransaction(obj.transactions[i]);
                     let text=web3.toAscii(mo.input).split(" ");
+                    if (text.length>1){
                     let ele;
                     if ($("#"+text[1]).length){
                       ele=$("#"+text[1])[0];
                     }else{
-                      $("#chain").append(`<p id="`+text[i]+`">`+text[1]+`<p>`);
+                      $("#chain").append(`<p id="`+text[1]+`">`+text[1]+`<p>`);
                       ele=$("#"+text[1])[0];
                     }
                     switch(text[0]){
@@ -98,8 +98,7 @@
                       break;
                     }
                   }
-                  ule += `</ul>`;
-                  $("#chain").append(ule);
+                  }
                 }
                 lastTimeStamp = obj.timestamp;
               }
@@ -119,7 +118,6 @@
                 nonce: web3.eth.getTransactionCount(web3.eth.defaultAccount),
                 chain: 72
               };
-              cntr++;
               web3.personal.unlockAccount(
                 web3.personal.listAccounts[0],
                 "123456789",
@@ -152,20 +150,6 @@
   </head>
 
   <body>
-<<<<<<< HEAD
-    <h1>Artist Dashboard</h1>
-    <div style="display:flex;flex-direction:row;">
-      <div style="flex: 1 1 auto">
-       <!-- <h2>Account: <span id="addr"></span></h2>
-        <h2>Balance: <span id="balance">...</span></h2>  --> 
-      </div>
-      <div style="flex: 1 1 auto">
-        <h2>Tickets</h2>
-        <button>Release a ticket</button>
-        <h2>Ticket Status</h2>
-        <p>Tickets Issued: <span id="issued"></span></p>
-        <p>Tickets Bought: <span id="bought"></span></p>
-=======
     <h1>Author Dashboard</h1>
     <div style="display:flex;flex-direction:row;">
       <div style="flex: 1 1 auto">
@@ -176,13 +160,12 @@
       </div>
       <div style="flex: 1 1 auto">
         <h2>Tickets</h2>
-        <button class="addtick">Add Ticket</button>
+        <button id="addtick">Add Ticket</button>
         <h3>Active tickets</h3>
         <div
           style="display:flex;flex-direction:column; overflow-y:auto"
           id="chain"
         ></div>
->>>>>>> 95e0683071f4b8ff0842b4250c0be863a4d6ef1d
       </div>
     </div>
   </body>

@@ -71,7 +71,6 @@
             setInterval(() => {
               let obj = web3.eth.getBlock("latest");
               if (obj.timestamp != lastTimeStamp) {
-                $("#chain").append(`<li>` + obj.timestamp + `</li>`);
                 if (obj.transactions.length > 0) {
                   for (let i = 0; i < obj.transactions.length; i++) {
                     let mo = web3.eth.getTransaction(obj.transactions[i]);
@@ -80,7 +79,7 @@
                     if ($("#"+text[1]).length){
                       ele=$("#"+text[1])[0];
                     }else{
-                      $("#chain").append(`<button id="`+text[i]+`">`+text[1]+`<button>`);
+                      $("#chain").append(`<button id="`+text[1]+`">`+text[1]+`<button>`);
                       ele=$("#"+text[1])[0];
                     }
                     switch(text[0]){
@@ -94,8 +93,6 @@
                       break;
                     }
                   }
-                  ule += `</ul>`;
-                  $("#chain").append(ule);
                 }
                 lastTimeStamp = obj.timestamp;
               }
@@ -103,7 +100,7 @@
 
             //get my own ID
             let myID = web3.eth.coinbase;
-            function sendTo(id) {
+            function sendmsg(id) {
               web3.eth.defaultAccount = web3.personal.listAccounts[0];
               let tact = {
                 from: web3.personal.listAccounts[0],
@@ -115,7 +112,6 @@
                 nonce: web3.eth.getTransactionCount(web3.eth.defaultAccount),
                 chain: 72
               };
-              cntr++;
               web3.personal.unlockAccount(
                 web3.personal.listAccounts[0],
                 "123456789",
@@ -148,7 +144,7 @@
   </head>
 
   <body>
-    <h1>Author Dashboard</h1>
+    <h1>Concertgoer Dashboard</h1>
     <div style="display:flex;flex-direction:row;">
       <div style="flex: 1 1 auto">
         <h2>Status:<span id="spanStatus">Disconnected</span></h2>
@@ -158,7 +154,6 @@
       </div>
       <div style="flex: 1 1 auto">
         <h2>Tickets</h2>
-        <button class="addtick">Add Ticket</button>
         <h3>Active tickets</h3>
         <div
           style="display:flex;flex-direction:column; overflow-y:auto"
