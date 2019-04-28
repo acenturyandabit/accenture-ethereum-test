@@ -114,7 +114,7 @@
                     ele.disabled = true;
                     $("#chain")[0].disabled = true;
                   } else {
-                    $("#chain>buttons").foreach(e => (e.disabled = true));
+                    $("#chain>buttons").each(e => (e.disabled = true));
                     ele.style.background = "grey";
                     alreadyBought = true;
                     break;
@@ -181,7 +181,7 @@
             let sendees = [];
             $("#chain").on("click", "button", e => {
               sendmsg(e.target.id); //send money to myself
-              $("#chain>button").foreach(f => {
+              $("#chain>button").each(f => {
                 f.disabled = true;
               });
               f.innerText = "Awaiting approval for this order...";
